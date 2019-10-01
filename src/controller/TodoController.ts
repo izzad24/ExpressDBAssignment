@@ -2,12 +2,25 @@ import {getRepository} from "typeorm";
 import {NextFunction, Request, Response} from "express";
 import {ToDo} from "../entity/Todo";
 
+interface FilterOptions {
+    category?: string
+    completed?: boolean
+}
+
 export class ToDoController {
 
     private todoRepository = getRepository(ToDo);
 
     async all(request: Request, response: Response, next: NextFunction) {
-        return this.todoRepository.find();
+        let filterOptions: FilterOptions= {}
+        if(request.query.category){
+            filterOptions.category = request.query.category
+        }
+        if(request.query.completed){
+            filterOptions.completed = request.query.completed
+        }
+
+        return this.todoRepository.find(filterOptions);
     }
 
     async one(request: Request, response: Response, next: NextFunction) {
@@ -47,9 +60,15 @@ export class ToDoController {
     async updateTask(request: Request, response: Response, next: NextFunction) {
         let task = await this.todoRepository.findOne(request.params.id);
         
-        task.description = request.body.description;
-        task.notes = request.body.notes;
-        task.category = request.body.category;
+        if(request.body.description){
+            task.description = request.body.description
+        }
+        if(request.body.notes){
+            task.notes = request.body.notes
+        }
+        if(request.body.category){
+            task.category = request.body.category
+        }
         response.send("Item updated")
         return this.todoRepository.save(task)
     }
